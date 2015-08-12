@@ -23,6 +23,9 @@ var exec = require('cordova/exec'),
     channel = require('cordova/channel'),
     targetEventHandlers = {};
 
+//Single instance of battery Manger
+var batteryManager;
+
 function addEventHandler(type) {
     var e = type.toLowerCase();
     return (targetEventHandlers[e] = channel.create(type));
@@ -45,7 +48,7 @@ function createEvent(type, data) {
 /**
 * This class contains information about the current battery status.
 */
-var BatteryManager = function () {
+var BatteryManager = function (testBool) {
     //The level value:
     //- must be set to 0 if the system's battery is depleted and the system is about to be suspended
     //and to 1.0 if the battery is full
@@ -151,9 +154,15 @@ var BatteryManager = function () {
         console.log('Error Battery: ' + e);
     };
 
+    //Public call for test
+    if(testBool){
+        this._status = function(info) {
+            _status(info);
+        };
+    }
+
 };
 
-var batteryManager = new BatteryManager();
 
 /**
 * Keep track of how many handlers we have so we can start and stop
@@ -214,8 +223,8 @@ BatteryManager.prototype.dispatchEvent = function (type) {
     }
 };
 
-function getBattery() {
-    var existingBatteryManager = cordova.require('cordova/modulemapper').getOriginalSymbol(window, 'navigator.battery');
+function getBattery(testBool) {
+    var existingBatteryManager = cordova.require('cordova/modulemapper').getOriginalSymbol(window, 'navigator.getBattery');
     //Promise detection
     if (typeof Promise !== 'undefined') {
         //if implementation use promise (warning with firefoxOs)
@@ -227,6 +236,10 @@ function getBattery() {
                 if (existingBatteryManager) {
                     resolve(existingBatteryManager);
                 } else {
+                    if( typeof batteryManager === 'undefined') {
+                        console.log('new instance');
+                        batteryManager = new BatteryManager(testBool);
+                    }
                     resolve(batteryManager);
                 }
             }
