@@ -233,15 +233,11 @@ function getBattery(testBool) {
         }
         return new Promise(
             function (resolve, reject) {
-                if (existingBatteryManager) {
-                    resolve(existingBatteryManager);
-                } else {
                     if( typeof batteryManager === 'undefined') {
                         console.log('new instance');
                         batteryManager = new BatteryManager(testBool);
                     }
                     resolve(batteryManager);
-                }
             }
         );
     } else {
